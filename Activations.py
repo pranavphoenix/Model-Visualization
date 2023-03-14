@@ -1,11 +1,5 @@
-import torch
-import torchvision
-import matplotlib.pyplot as plt
 
-# Load a pretrained model from torchvision
-model = torchvision.models.resnet18(pretrained=False)
 
-#initialize all weights to 1 and bais to 0
 def initialize_weights(m):
   
   if isinstance(m, nn.Conv2d):
@@ -27,21 +21,19 @@ def initialize_weights(m):
       nn.init.constant_(m.bias.data, 0)
 
 model.apply(initialize_weights)
-
-# Define a forward hook to get the activations for a given layer
-def hook_fn(module, input, output):
-    activations = output.detach().cpu().numpy()
-    plt.imshow(activations[0, 0])
-    plt.axis('off')
-    plt.show()
-
-# Register the hook on a particular layer
-handle = model.conv1.register_forward_hook(hook_fn)
-
+handle = model.layers[4].register_forward_hook(hook_fn)
 # Create an input tensor
-input_tensor = torch.randn(1, 3, 224, 224)
 
+input = torch.zeros(1,3, 256, 256)
+input[0, :, 128, 128] = torch.tensor([1., 1., 1.])
+# input[0, :, 127, 128] = torch.tensor([1., 1., 1.])
+# input[0, :, 128, 127] = torch.tensor([1., 1., 1.])
+# input[0, :, 127, 127] = torch.tensor([1., 1., 1.])
+
+input_tensor = input
 # Pass the input tensor through the network
+model.eval()
+# model.bias.zero_()
 model(input_tensor)
 
 # Remove the hook
